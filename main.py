@@ -1,7 +1,6 @@
 import pygame
 import math
 
-pygame.init()
 
 WIDTH, HEIGHT = 900, 500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -29,6 +28,7 @@ class AMR():
 
     def handle_movement(self, keys):
         if keys[pygame.K_UP]:
+            print("K_UP")
             self.move_fwd_bwd(1)
         if keys[pygame.K_DOWN]:
             self.move_fwd_bwd(-1)
@@ -40,19 +40,20 @@ class AMR():
     def move_fwd_bwd(self, direction):
         self.y += self.lin_speed * math.cos(self.angle) * direction
         self.x += self.lin_speed * math.sin(self.angle) * direction
+        print(f"self.x = {self.x}, self.y = {self.y}")
 
     def rotate(self, direction):
         self.angle += self.rot_speed * 180 / math.pi * direction
 
     def draw(self):
-        WIN.fill((0, 0, 0))
+        WIN.fill(BLACK)
         pygame.draw.rect(WIN, self.color, self.rect)
         pygame.display.update()
 
 
 def main():
+    pygame.init()
     clock = pygame.time.Clock()
-    #WIN.fill(BLACK)
 
     amr = AMR()
 
@@ -62,13 +63,12 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                pygame.quit()
 
         keys = pygame.key.get_pressed()
         amr.handle_movement(keys)
         amr.draw()
 
-
-pygame.quit()
 
 if __name__ == "__main__":
     main()
