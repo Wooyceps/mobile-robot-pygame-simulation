@@ -24,8 +24,6 @@ class AMR():
         self.lin_speed = VEL
         self.rot_speed = VEL
 
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
-
     def handle_movement(self, keys):
         if keys[pygame.K_UP]:
             print("K_UP")
@@ -47,7 +45,8 @@ class AMR():
 
     def draw(self):
         WIN.fill(BLACK)
-        pygame.draw.rect(WIN, self.color, self.rect)
+        rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        pygame.draw.rect(WIN, self.color, rect)
         pygame.display.update()
 
 
