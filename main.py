@@ -42,7 +42,7 @@ class AMR():
 
     def rotate(self, direction):
         self.angle_rad += self.rot_speed_deg * math.pi / 180 * direction
-        print(f"current angle: {self.angle_rad / 180 * math.pi} [deg], {self.angle_rad} [rad]")
+        print(f"current angle: {self.angle_rad * 180 / math.pi} [deg], {self.angle_rad} [rad]")
 
     def draw(self):
         WIN.fill(BLACK)
@@ -59,13 +59,10 @@ class AMR():
 
         rect_angles = [rect_ang, -rect_ang + math.pi, rect_ang + math.pi, -rect_ang]  # angle to each corner
 
-        # Convert rotation from degrees to radians.
-        rot_rad = (math.pi / 180) * self.angle_rad
-
         # Calculate the coordinates of each point.
         for angle in rect_angles:
-            y_offset = -1 * half_diag * math.sin(angle + rot_rad)
-            x_offset = half_diag * math.cos(angle + rot_rad)
+            y_offset = -1 * half_diag * math.sin(angle + self.angle_rad)
+            x_offset = half_diag * math.cos(angle + self.angle_rad)
             points.append((self.x + x_offset, self.y + y_offset))
 
         pygame.draw.polygon(WIN, self.color, points)
