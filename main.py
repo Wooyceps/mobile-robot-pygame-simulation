@@ -1,10 +1,10 @@
-import pygame
+import pygame as pg
 import math
 
 
 WIDTH, HEIGHT = 900, 500
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("AMR simulation")
+WIN = pg.display.set_mode((WIDTH, HEIGHT))
+pg.display.set_caption("AMR simulation")
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -24,30 +24,40 @@ class AMR():
         self.front_color = AIUT_BLUE
         self.lin_speed = 3 # pixels per frame
         self.rot_speed_deg = 1  # degree per frame
+        self.leave_track = True
+        self.coord_memory = []
 
     def print_dof(self):
         print(f"x = {round(self.x, 2)}, y = {round(self.y, 2)}, angle = {round(self.angle_rad * 180 / math.pi, 2)}")
 
     def handle_movement(self, keys):
-        if keys[pygame.K_UP]:
+        if keys[pg.K_UP]:
             self.move_fwd_bwd(-1)
-        if keys[pygame.K_DOWN]:
+        if keys[pg.K_DOWN]:
             self.move_fwd_bwd(1)
-        if keys[pygame.K_LEFT]:
+        if keys[pg.K_LEFT]:
             self.rotate(1)
-        if keys[pygame.K_RIGHT]:
+        if keys[pg.K_RIGHT]:
             self.rotate(-1)
 
     def move_fwd_bwd(self, direction):
         self.y += self.lin_speed * math.cos(self.angle_rad) * direction
         self.x += self.lin_speed * math.sin(self.angle_rad) * direction
         self.print_dof()
+        self.coord_memory.append((self.x, self.y))
 
     def rotate(self, direction):
         self.angle_rad += self.rot_speed_deg * math.pi / 180 * direction
         self.print_dof()
 
+    def draw_waypoints(self):
+        for coords in self.coord_memory:
+            pg.draw.circle(WIN, RED, coords, 1)
+
     def draw(self):
+        if self.leave_track:
+            self.draw_waypoints()
+
         # AMR body base
         points = []
 
@@ -60,7 +70,7 @@ class AMR():
             x_offset = half_diag * math.cos(angle + self.angle_rad)
             points.append((self.x + x_offset, self.y + y_offset))
 
-        pygame.draw.polygon(WIN, self.color, points)
+        pg.draw.polygon(WIN, self.color, points)
 
         # AMR front light feature
         points = []
@@ -80,9 +90,9 @@ class AMR():
                 x_offset = half_diag_inner * math.cos(angle + self.angle_rad)
             points.append((self.x + x_offset, self.y + y_offset))
 
-        pygame.draw.polygon(WIN, self.front_color, points)
+        pg.draw.polygon(WIN, self.front_color, points)
 
-        pygame.display.update()
+        pg.display.update()
 
 
 def draw_simulation(*argv):
@@ -93,20 +103,20 @@ def draw_simulation(*argv):
 
 
 def main():
-    pygame.init()
-    clock = pygame.time.Clock()
+    pg.init()
+    clock = pg.time.Clock()
 
     amr = AMR()
 
     run = True
     while run:
         clock.tick(FPS)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
                 run = False
-                pygame.quit()
+                pg.quit()
 
-        keys = pygame.key.get_pressed()
+        keys = pg.key.get_pressed()
         amr.handle_movement(keys)
         draw_simulation(amr)
 
