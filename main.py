@@ -51,8 +51,9 @@ class AMR():
         self.print_dof()
 
     def draw_waypoints(self):
-        for coords in self.coord_memory:
-            pg.draw.circle(WIN, RED, coords, 1)
+        for idx, coords in enumerate(self.coord_memory):
+            if idx % 5 == 0:
+                pg.draw.circle(WIN, RED, coords, 2)
 
     def draw(self):
         if self.leave_track:
