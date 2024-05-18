@@ -25,9 +25,11 @@ class AMR():
         self.lin_speed = 3 # pixels per frame
         self.rot_speed_deg = 1  # degree per frame
 
+    def print_dof(self):
+        print(f"x = {round(self.x, 2)}, y = {round(self.y, 2)}, angle = {round(self.angle_rad * 180 / math.pi, 2)}")
+
     def handle_movement(self, keys):
         if keys[pygame.K_UP]:
-            print("K_UP")
             self.move_fwd_bwd(-1)
         if keys[pygame.K_DOWN]:
             self.move_fwd_bwd(1)
@@ -39,15 +41,13 @@ class AMR():
     def move_fwd_bwd(self, direction):
         self.y += self.lin_speed * math.cos(self.angle_rad) * direction
         self.x += self.lin_speed * math.sin(self.angle_rad) * direction
-        print(f"self.x = {self.x}, self.y = {self.y}")
+        self.print_dof()
 
     def rotate(self, direction):
         self.angle_rad += self.rot_speed_deg * math.pi / 180 * direction
-        print(f"current angle: {self.angle_rad * 180 / math.pi} [deg], {self.angle_rad} [rad]")
+        self.print_dof()
 
-    def draw_AMR(self):
-        WIN.fill(WHITE)
-
+    def draw(self):
         # AMR body base
         points = []
 
@@ -85,6 +85,13 @@ class AMR():
         pygame.display.update()
 
 
+def draw_simulation(*argv):
+    WIN.fill(WHITE)
+
+    for obj in argv:
+        obj.draw()
+
+
 def main():
     pygame.init()
     clock = pygame.time.Clock()
@@ -101,7 +108,7 @@ def main():
 
         keys = pygame.key.get_pressed()
         amr.handle_movement(keys)
-        amr.draw_AMR()
+        draw_simulation(amr)
 
 
 if __name__ == "__main__":
