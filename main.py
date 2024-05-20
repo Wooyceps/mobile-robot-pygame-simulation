@@ -93,14 +93,14 @@ class AMR():
 
         pg.draw.polygon(WIN, self.front_color, points)
 
-        pg.display.update()
-
 
 def draw_simulation(*argv):
     WIN.fill(WHITE)
 
     for obj in argv:
         obj.draw()
+
+    pg.display.update()
 
 
 def main():
