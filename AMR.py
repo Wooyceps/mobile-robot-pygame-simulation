@@ -49,6 +49,7 @@ class AMR():
 
     def rotate(self, direction):
         self.angle_rad += self.rot_speed_deg * math.pi / 180 * direction
+        self.angle_rad %= 2 * math.pi
         self.print_dof()
 
     def draw_waypoints(self):
@@ -97,7 +98,9 @@ class AMR():
     def trajectory_planning(self, mouse):
         if mouse:
             self.target = mouse
-        target_angle_rad = -math.atan2(self.target[0] - self.x, -(self.target[1] - self.y))
+        target_angle_rad = math.atan2(self.x - self.target[0], self.y - self.target[1])
+        if target_angle_rad < 0:
+            target_angle_rad += 2 * math.pi
         angle_diff_rad = target_angle_rad - self.angle_rad # angular distance to cover
         print(f"target_angle = {round(target_angle_rad * 180 / math.pi, 2)}, angle_diff = {round(angle_diff_rad * 180 / math.pi, 2)}")
         if abs(angle_diff_rad * 180/math.pi) > 1:
