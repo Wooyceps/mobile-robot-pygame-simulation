@@ -20,16 +20,17 @@ class AMR():
         self.rot_speed_deg = 1  # degree per frame
         self.leave_track = False
         self.coord_memory = []
-        self.plan_trajectory = True
-        self.mouse_click_xy = None
+        self.plan_trajectory = False
+        self.target = None
 
     def print_dof(self):
         print(f"x = {round(self.x, 2)}, y = {round(self.y, 2)}, angle = {round(self.angle_rad * 180 / math.pi, 2)}")
 
     def handle_movement(self, keys, mouse):
-        self.mouse_click_xy = mouse
-        if self.mouse_click_xy and self.plan_trajectory:
-            self.trajectory_planning(self.mouse_click_xy[0], self.mouse_click_xy[1])
+        if mouse:
+            self.plan_trajectory = True
+        if self.plan_trajectory:
+            self.trajectory_planning(mouse)
         else:
             if keys[pg.K_UP]:
                 self.move_fwd_bwd(-1)
@@ -93,9 +94,16 @@ class AMR():
 
         pg.draw.polygon(WIN, self.front_color, points)
 
-    def trajectory_planning(self, target_x, target_y):
-        target_angle_rad = -math.atan2(target_x - self.x, -(target_y - self.y))
+    def trajectory_planning(self, mouse):
+        if mouse:
+            self.target = mouse
+        target_angle_rad = -math.atan2(self.target[0] - self.x, -(self.target[1] - self.y))
         angle_diff_rad = target_angle_rad - self.angle_rad # angular distance to cover
         print(f"target_angle = {round(target_angle_rad * 180 / math.pi, 2)}, angle_diff = {round(angle_diff_rad * 180 / math.pi, 2)}")
-
-        self.mouse_click_xy = None
+        if abs(angle_diff_rad * 180/math.pi) > 1:
+            if angle_diff_rad > 0:
+                self.rotate(1)
+            else:
+                self.rotate(-1)
+        else:
+            self.plan_trajectory = False
