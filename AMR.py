@@ -102,9 +102,9 @@ class AMR():
         if target_angle_rad < 0:
             target_angle_rad += 2 * math.pi
         angle_diff_rad = target_angle_rad - self.angle_rad # angular distance to cover
-        print(f"target_angle = {round(target_angle_rad * 180 / math.pi, 2)}, angle_diff = {round(angle_diff_rad * 180 / math.pi, 2)}")
-        if abs(angle_diff_rad * 180/math.pi) > 1:
-            if angle_diff_rad > 0:
+        print(f"target_angle = {round(target_angle_rad * 180 / math.pi, 2)}, angle_diff = {round(abs(angle_diff_rad) * 180 / math.pi, 2)}")
+        if abs(angle_diff_rad) * 180/math.pi > 1:   # if remaining angle to cover is more than 1 degree
+            if angle_diff_rad < - math.pi or (0 < angle_diff_rad < math.pi):
                 self.rotate(1)
             else:
                 self.rotate(-1)
