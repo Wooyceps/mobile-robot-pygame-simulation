@@ -21,24 +21,24 @@ class AMR():
         self.leave_track = False
         self.coord_memory = []
         self.plan_trajectory = True
+        self.mouse_click_xy = None
 
     def print_dof(self):
         print(f"x = {round(self.x, 2)}, y = {round(self.y, 2)}, angle = {round(self.angle_rad * 180 / math.pi, 2)}")
 
     def handle_movement(self, keys, mouse):
-        if keys[pg.K_UP]:
-            self.move_fwd_bwd(-1)
-        if keys[pg.K_DOWN]:
-            self.move_fwd_bwd(1)
-        if keys[pg.K_LEFT]:
-            self.rotate(1)
-        if keys[pg.K_RIGHT]:
-            self.rotate(-1)
-        if mouse:
-            if self.plan_trajectory:
-                self.trajectory_planning(mouse[0], mouse[1])
-            else:
-                self.x, self.y = mouse[0], mouse[1]
+        self.mouse_click_xy = mouse
+        if self.mouse_click_xy and self.plan_trajectory:
+            self.trajectory_planning(self.mouse_click_xy[0], self.mouse_click_xy[1])
+        else:
+            if keys[pg.K_UP]:
+                self.move_fwd_bwd(-1)
+            if keys[pg.K_DOWN]:
+                self.move_fwd_bwd(1)
+            if keys[pg.K_LEFT]:
+                self.rotate(1)
+            if keys[pg.K_RIGHT]:
+                self.rotate(-1)
 
     def move_fwd_bwd(self, direction):
         self.y += self.lin_speed * math.cos(self.angle_rad) * direction
@@ -94,11 +94,8 @@ class AMR():
         pg.draw.polygon(WIN, self.front_color, points)
 
     def trajectory_planning(self, target_x, target_y):
-        target_angle_rad = math.atan2(target_y - self.y, target_x - self.x)
-        angle_diff_deg = (target_angle_rad - self.angle_rad) * 180 / math.pi
-        step_deg = angle_diff_deg / self.rot_speed_deg
-        while self.angle_rad != target_angle_rad:
-            if angle_diff_deg > 0:
-                self.rotate(1)
-            elif angle_diff_deg < 0:
-                self.rotate(-1)
+        target_angle_rad = -math.atan2(target_x - self.x, -(target_y - self.y))
+        angle_diff_rad = target_angle_rad - self.angle_rad # angular distance to cover
+        print(f"target_angle = {round(target_angle_rad * 180 / math.pi, 2)}, angle_diff = {round(angle_diff_rad * 180 / math.pi, 2)}")
+
+        self.mouse_click_xy = None

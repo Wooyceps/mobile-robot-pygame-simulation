@@ -31,9 +31,9 @@ def main():
     amr = AMR.AMR()
 
     run = True
-    mouse = None
     while run:
         clock.tick(FPS)
+        mouse = None
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 run = False
