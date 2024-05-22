@@ -13,18 +13,15 @@ class AMR():
     def __init__(self, x=WIDTH // 2, y=HEIGHT // 2):
         self.width, self.height = 50, 75
         self.x, self.y = WIDTH // 2, HEIGHT // 2
-        self.angle_rad = 0  # angle > 0 => rotated left
+        self.angle_rad = 0
         self.color = BLACK
         self.front_color = AIUT_BLUE
-        self.lin_speed = 3 # pixels per frame
-        self.rot_speed_deg = 1  # degree per frame
+        self.lin_speed = 3
+        self.rot_speed_deg = 1
         self.leave_track = False
         self.coord_memory = []
         self.plan_trajectory = False
         self.target = None
-
-    def print_dof(self):
-        print(f"x = {round(self.x, 2)}, y = {round(self.y, 2)}, angle = {round(self.angle_rad * 180 / math.pi, 2)}")
 
     def handle_movement(self, keys, mouse):
         if mouse:
@@ -44,13 +41,11 @@ class AMR():
     def move_fwd_bwd(self, direction):
         self.y += self.lin_speed * math.cos(self.angle_rad) * direction
         self.x += self.lin_speed * math.sin(self.angle_rad) * direction
-        self.print_dof()
         self.coord_memory.append((self.x, self.y))
 
     def rotate(self, direction):
         self.angle_rad += self.rot_speed_deg * math.pi / 180 * direction
         self.angle_rad %= 2 * math.pi
-        self.print_dof()
 
     def draw_waypoints(self):
         for idx, coords in enumerate(self.coord_memory):
@@ -65,8 +60,8 @@ class AMR():
         points = []
 
         half_diag = math.sqrt((self.height / 2) ** 2 + (self.width / 2) ** 2)
-        rect_ang = math.atan2(self.height / 2, self.width / 2)  # from x-axis perspective
-        rect_angles = [rect_ang, -rect_ang + math.pi, rect_ang + math.pi, -rect_ang]  # angle to each corner
+        rect_ang = math.atan2(self.height / 2, self.width / 2)
+        rect_angles = [rect_ang, -rect_ang + math.pi, rect_ang + math.pi, -rect_ang]
 
         for angle in rect_angles:
             y_offset = -1 * half_diag * math.sin(angle + self.angle_rad)
@@ -80,9 +75,9 @@ class AMR():
 
         half_diag_outer = math.sqrt((self.height / 2) ** 2 + (self.width / 2) ** 2)
         half_diag_inner = math.sqrt((self.height / 2 - 5) ** 2 + (self.width / 2) ** 2)
-        rect_ang_outer = math.atan2(self.height / 2, self.width / 2)  # from x-axis perspective
-        rect_ang_inner = math.atan2(self.height / 2 - 5, self.width / 2)  # from x-axis perspective
-        rect_angles = [rect_ang_outer, -rect_ang_outer + math.pi, -rect_ang_inner + math.pi, rect_ang_inner]  # angle to each corner
+        rect_ang_outer = math.atan2(self.height / 2, self.width / 2)
+        rect_ang_inner = math.atan2(self.height / 2 - 5, self.width / 2)
+        rect_angles = [rect_ang_outer, -rect_ang_outer + math.pi, -rect_ang_inner + math.pi, rect_ang_inner]
 
         for idx, angle in enumerate(rect_angles):
             if idx < 2:
@@ -101,14 +96,14 @@ class AMR():
         target_angle_rad = math.atan2(self.x - self.target[0], self.y - self.target[1])
         if target_angle_rad < 0:
             target_angle_rad += 2 * math.pi
-        angle_diff_rad = target_angle_rad - self.angle_rad # angular distance to cover
-        # print(f"target_angle = {round(target_angle_rad * 180 / math.pi, 2)}, angle_diff = {round(abs(angle_diff_rad) * 180 / math.pi, 2)}")
-        if abs(angle_diff_rad) * 180/math.pi > 1:   # if remaining angle to cover is more than 1 degree
+        angle_diff_rad = target_angle_rad - self.angle_rad
+        if abs(angle_diff_rad) * 180/math.pi > 1:
             if angle_diff_rad < - math.pi or (0 < angle_diff_rad < math.pi):
                 self.rotate(1)
             else:
                 self.rotate(-1)
-        if math.sqrt((self.x - self.target[0]) ** 2 + (self.y - self.target[1]) ** 2) > 5:  # if distance to target is more than 5 pixels
-            self.move_fwd_bwd(-1)
         else:
-            self.plan_trajectory = False
+            if math.sqrt((self.x - self.target[0]) ** 2 + (self.y - self.target[1]) ** 2) > 5:
+                self.move_fwd_bwd(-1)
+            else:
+                self.plan_trajectory = False
