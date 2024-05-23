@@ -2,15 +2,21 @@ import math
 import pygame as pg
 from main import WIN, WIDTH, HEIGHT
 
+# Define color constants
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-YELLOW = (255, 255, 0)
 AIUT_BLUE = (0, 149, 218)
 
 
 class AMR():
+    """
+    Class representing an Autonomous Mobile Robot (AMR).
+    """
+
     def __init__(self, x=WIDTH // 2, y=HEIGHT // 2):
+        """
+        Initialize the AMR with default or provided position, and other attributes.
+        """
         self.width, self.height = 50, 75
         self.x, self.y = WIDTH // 2, HEIGHT // 2
         self.angle_rad = 0
@@ -24,6 +30,9 @@ class AMR():
         self.target = None
 
     def handle_movement(self, keys, mouse):
+        """
+        Handle the movement of the AMR based on keyboard inputs or mouse position.
+        """
         if mouse:
             self.plan_trajectory = True
         if self.plan_trajectory:
@@ -39,20 +48,32 @@ class AMR():
                 self.rotate(-1)
 
     def move_fwd_bwd(self, direction):
+        """
+        Move the AMR forward or backward based on the direction provided.
+        """
         self.y += self.lin_speed * math.cos(self.angle_rad) * direction
         self.x += self.lin_speed * math.sin(self.angle_rad) * direction
         self.coord_memory.append((self.x, self.y))
 
     def rotate(self, direction):
+        """
+        Rotate the AMR based on the direction provided.
+        """
         self.angle_rad += self.rot_speed_deg * math.pi / 180 * direction
         self.angle_rad %= 2 * math.pi
 
     def draw_waypoints(self):
+        """
+        Draw waypoints on the screen for the AMR's path.
+        """
         for idx, coords in enumerate(self.coord_memory):
             if idx % 5 == 0:
                 pg.draw.circle(WIN, RED, coords, 2)
 
     def draw(self):
+        """
+        Draw the AMR on the screen.
+        """
         if self.leave_track:
             self.draw_waypoints()
 
@@ -91,6 +112,9 @@ class AMR():
         pg.draw.polygon(WIN, self.front_color, points)
 
     def trajectory_planning(self, mouse):
+        """
+        Plan the trajectory of the AMR based on the mouse position.
+        """
         if mouse:
             self.target = mouse
         target_angle_rad = math.atan2(self.x - self.target[0], self.y - self.target[1])
