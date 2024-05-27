@@ -1,11 +1,10 @@
 import math
 import pygame as pg
-from main import WIN
-from assets import WIDTH, HEIGHT, BLACK, AIUT_BLUE, RED
+from assets import WIDTH, HEIGHT, BLACK, AIUT_BLUE, RED, WIN
 from map import Map
 
 
-class AMR():
+class Amr():
     """
     Class representing an Autonomous Mobile Robot (AMR).
     """
