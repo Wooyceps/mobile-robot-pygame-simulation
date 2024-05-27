@@ -2,6 +2,7 @@ import math
 import pygame as pg
 from main import WIN
 from assets import WIDTH, HEIGHT, BLACK, AIUT_BLUE, RED
+from map import Map
 
 
 class AMR():
@@ -13,6 +14,8 @@ class AMR():
         """
         Initialize the AMR with default or provided position, and other attributes.
         """
+        self.leave_track = True
+        self.plan_trajectory = True
         self.width, self.height = 50, 75
         self.x, self.y = WIDTH // 2, HEIGHT // 2
         self.angle_rad = 0
@@ -20,19 +23,18 @@ class AMR():
         self.front_color = AIUT_BLUE
         self.lin_speed = 3
         self.rot_speed_deg = 1
-        self.leave_track = False
         self.coord_memory = []
-        self.plan_trajectory = False
         self.target = None
+        self.map = Map()
 
     def handle_movement(self, keys, destination):
         """
         Handle the movement of the AMR based on keyboard inputs or destination position.
         """
-        if destination:
-            self.plan_trajectory = True
-        if self.plan_trajectory:
-            self.trajectory_planning(destination)
+        self.target = destination if (destination != self.target and destination) else self.target
+        print(self.plan_trajectory, self.target)
+        if self.plan_trajectory and self.target:
+            self.trajectory_planning()
         else:
             if keys[pg.K_UP]:
                 self.move_fwd_bwd(-1)
@@ -107,12 +109,10 @@ class AMR():
 
         pg.draw.polygon(WIN, self.front_color, points)
 
-    def trajectory_planning(self, destination):
+    def trajectory_planning(self):
         """
         Plan the trajectory of the AMR based on the destination position.
         """
-        if destination:
-            self.target = destination
         target_angle_rad = math.atan2(self.x - self.target[0], self.y - self.target[1])
         if target_angle_rad < 0:
             target_angle_rad += 2 * math.pi
@@ -126,4 +126,4 @@ class AMR():
             if math.sqrt((self.x - self.target[0]) ** 2 + (self.y - self.target[1]) ** 2) > 5:
                 self.move_fwd_bwd(-1)
             else:
-                self.plan_trajectory = False
+                self.target = None
