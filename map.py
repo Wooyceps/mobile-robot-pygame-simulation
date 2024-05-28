@@ -8,6 +8,7 @@ class Map:
     def __init__(self, amr):
         self.enable_map = True
         self.enable_input = False
+        self.enable_pathfinding = False
         self.amr = amr
         self.width = WIDTH
         self.height = HEIGHT
@@ -17,8 +18,8 @@ class Map:
         self.downsized_grid = []
         self.obstacles = []
         self.button_radius = INTERFACE_HEIGHT // 2 - 10
-        self.button_x = WIDTH - INTERFACE_WIDTH - self.button_radius - 10
-        self.button_y = HEIGHT - INTERFACE_HEIGHT + self.button_radius + 5
+        self.button_1 = (WIDTH - INTERFACE_WIDTH - self.button_radius - 10, HEIGHT - INTERFACE_HEIGHT + self.button_radius + 5)
+        self.button_2 = (self.button_1[0] - 2*self.button_radius - 10, self.button_1[1])
         self.font = pg.font.SysFont(FONT, 10)
 
     def input_obstacles(self, mouse_down, mouse_up):
@@ -59,19 +60,30 @@ class Map:
 
     def button_handler(self, mouse_pos):
         if mouse_pos:
-            if self.button_x - self.button_radius <= mouse_pos[0] <= self.button_x + self.button_radius and \
-                    self.button_y - self.button_radius <= mouse_pos[1] <= self.button_y + self.button_radius:
+            if self.button_1[0] - self.button_radius <= mouse_pos[0] <= self.button_1[0] + self.button_radius and \
+                    self.button_1[1] - self.button_radius <= mouse_pos[1] <= self.button_1[1] + self.button_radius:
                 self.enable_input = not self.enable_input
+            elif self.button_2[0] - self.button_radius <= mouse_pos[0] <= self.button_2[0] + self.button_radius and \
+                    self.button_2[1] - self.button_radius <= mouse_pos[1] <= self.button_2[1] + self.button_radius:
+                self.enable_pathfinding = not self.enable_pathfinding
 
-    def draw_input_button(self):
+    def draw_buttons(self):
         if not self.enable_input:
-            pg.draw.circle(WIN, GREEN, (self.button_x, self.button_y), self.button_radius)
+            pg.draw.circle(WIN, GREEN, (self.button_1[0], self.button_1[1]), self.button_radius)
             WIN.blit(self.font.render(
-                "input obstacles", 1, BLACK), (self.button_x - self.button_radius + 5, self.button_y + 5))
-        if self.enable_input:
-            pg.draw.circle(WIN, RED, (self.button_x, self.button_y), self.button_radius)
+                "input obstacles", 1, BLACK), (self.button_1[0] - self.button_radius + 5, self.button_1[1] - 5))
+        else:
+            pg.draw.circle(WIN, RED, (self.button_1[0], self.button_1[1]), self.button_radius)
             WIN.blit(self.font.render(
-                "stop input", 1, BLACK), (self.button_x - self.button_radius + 5, self.button_y + 5))
+                "stop input", 1, BLACK), (self.button_1[0] - self.button_radius + 5, self.button_1[1] - 5))
+        if not self.enable_pathfinding:
+            pg.draw.circle(WIN, GREEN, (self.button_2[0], self.button_2[1]), self.button_radius)
+            WIN.blit(self.font.render(
+                "find path", 1, BLACK), (self.button_2[0] - self.button_radius + 5, self.button_2[1] - 5))
+        else:
+            pg.draw.circle(WIN, RED, (self.button_2[0], self.button_2[1]), self.button_radius)
+            WIN.blit(self.font.render(
+                "stop", 1, BLACK), (self.button_2[0] - self.button_radius + 5, self.button_2[1] - 5))
 
     def draw_obstacles(self):
         for obstacle in self.obstacles:
@@ -81,11 +93,14 @@ class Map:
         self.button_handler(mouse_down)
         if self.enable_input:
             self.input_obstacles(mouse_down, mouse_up)
-        # self.put_obstacle_on_grid()     # !!!!!!!!!
+        if self.enable_pathfinding:
+            self.put_obstacle_on_grid()
+            # algorytm do szukania sciezki i zapisywania jej
+            self.enable_pathfinding = False
 
     def draw(self):
         if self.enable_map:
-            self.draw_input_button()
+            self.draw_buttons()
             self.draw_obstacles()
 
 
