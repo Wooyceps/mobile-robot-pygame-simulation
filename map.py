@@ -57,6 +57,12 @@ class Map:
                 return True
         return False
 
+    def button_handler(self, mouse_pos):
+        self.draw_input_button()
+        if self.button_x - self.button_radius <= mouse_pos[0] <= self.button_x + self.button_radius and \
+                self.button_y - self.button_radius <= mouse_pos[1] <= self.button_y + self.button_radius:
+            self.enable_input = not self.enable_input
+
     def draw_input_button(self):
         if not self.enable_input:
             pg.draw.circle(WIN, GREEN, (self.button_x, self.button_y), self.button_radius)
@@ -67,4 +73,8 @@ class Map:
             WIN.blit(self.font.render(
                 "stop input", 1, BLACK), (self.button_x - self.button_radius + 5, self.button_y + 5))
 
+    def handle_obstacles(self, mouse_down, mouse_up=None):
+        self.button_handler(mouse_down)
+        if self.enable_input:
+            self.input_obstacles(mouse_down, mouse_up)
 

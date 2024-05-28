@@ -43,7 +43,7 @@ def main():
 
         keys = pg.key.get_pressed()
         amr.handle_movement(keys, mouse_down)
-        amr.map.draw_obstacles(mouse_down, mouse_up)
+        map.handle_obstacles(mouse_down, mouse_up)
         draw_simulation(amr, interface)
 
 
