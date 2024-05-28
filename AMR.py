@@ -14,7 +14,7 @@ class Amr():
         Initialize the AMR with default or provided position, and other attributes.
         """
         self.leave_track = True
-        self.plan_trajectory = True
+        self.plan_trajectory = False
         self.width, self.height = 50, 75
         self.x, self.y = WIDTH // 2, HEIGHT // 2
         self.angle_rad = 0
@@ -30,7 +30,6 @@ class Amr():
         Handle the movement of the AMR based on keyboard inputs or destination position.
         """
         self.target = destination if (destination != self.target and destination) else self.target
-        print(self.plan_trajectory, self.target)
         if self.plan_trajectory and self.target:
             self.trajectory_planning()
         else:

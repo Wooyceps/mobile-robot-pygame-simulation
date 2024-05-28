@@ -25,7 +25,7 @@ def main():
 
     amr = Amr()
     interface = Interface(amr)
-    map = Map()
+    map = Map(amr)
 
     run = True
     while run:
@@ -44,7 +44,7 @@ def main():
         keys = pg.key.get_pressed()
         amr.handle_movement(keys, mouse_down)
         map.handle_obstacles(mouse_down, mouse_up)
-        draw_simulation(amr, interface)
+        draw_simulation(amr, interface, map)
 
 
 if __name__ == "__main__":
