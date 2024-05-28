@@ -1,6 +1,7 @@
 import pygame as pg
 from AMR import Amr
 from interface import Interface
+from map import Map
 from assets import WHITE, WIN
 
 
@@ -24,6 +25,7 @@ def main():
 
     amr = Amr()
     interface = Interface(amr)
+    map = Map()
 
     run = True
     while run:

@@ -24,7 +24,6 @@ class Amr():
         self.rot_speed_deg = 1
         self.coord_memory = []
         self.target = None
-        self.map = Map()
 
     def handle_movement(self, keys, destination):
         """

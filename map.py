@@ -1,13 +1,14 @@
-from assets import WIDTH, HEIGHT, WIN, BLACK, INTERFACE_HEIGHT, INTERFACE_WIDTH
+from assets import WIDTH, HEIGHT, WIN, BLACK, INTERFACE_HEIGHT, INTERFACE_WIDTH, FONT, GREEN, RED
 import pygame as pg
 import numpy as np
 
 
 class Map:
 
-    def __init__(self):
+    def __init__(self, amr):
         self.enable_map = True
-        self.enable_input = True
+        self.enable_input = False
+        self.amr = amr
         self.width = WIDTH
         self.height = HEIGHT
         self.grid = np.zeros((self.height, self.width))
@@ -18,8 +19,15 @@ class Map:
         self.button_radius = INTERFACE_HEIGHT // 2 - 10
         self.button_x = WIDTH - INTERFACE_WIDTH - self.button_radius - 10
         self.button_y = HEIGHT - INTERFACE_HEIGHT + self.button_radius + 5
+        self.font = pg.font.SysFont(FONT, 10)
 
     def input_obstacles(self, mouse_down, mouse_up):
+        """
+        Input obstacles on the map by making.
+        :param mouse_down:
+        :param mouse_up:
+        :return:
+        """
         if mouse_down and not self.start:
             self.start = mouse_down
         elif mouse_up:
@@ -50,6 +58,13 @@ class Map:
         return False
 
     def draw_input_button(self):
-        pg.draw.circle(WIN, BLACK, (self.button_x, self.button_y), self.button_radius)
+        if not self.enable_input:
+            pg.draw.circle(WIN, GREEN, (self.button_x, self.button_y), self.button_radius)
+            WIN.blit(self.font.render(
+                "stop input", 1, BLACK), (self.button_x - self.button_radius + 5, self.button_y + 5))
+        if self.enable_input:
+            pg.draw.circle(WIN, RED, (self.button_x, self.button_y), self.button_radius)
+            WIN.blit(self.font.render(
+                "stop input", 1, BLACK), (self.button_x - self.button_radius + 5, self.button_y + 5))
 
 

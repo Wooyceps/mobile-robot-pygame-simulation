@@ -1,6 +1,6 @@
 import math
 import pygame as pg
-from assets import WIDTH, HEIGHT, BLACK, AIUT_BLUE, GREY, INTERFACE_WIDTH, INTERFACE_HEIGHT, WIN
+from assets import WIDTH, HEIGHT, BLACK, AIUT_BLUE, GREY, INTERFACE_WIDTH, INTERFACE_HEIGHT, WIN, FONT
 
 
 class Interface():
@@ -13,7 +13,7 @@ class Interface():
         self.amr = amr
         self.width, self.height = INTERFACE_WIDTH, INTERFACE_HEIGHT
         self.x, self.y = WIDTH - INTERFACE_WIDTH, HEIGHT - INTERFACE_HEIGHT
-        self.font = pg.font.SysFont('arial', 20)
+        self.font = pg.font.SysFont(FONT, 20)
         self.fill_color = GREY
 
     def draw(self):
