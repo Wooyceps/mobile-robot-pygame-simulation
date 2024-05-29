@@ -23,6 +23,7 @@ class Map:
         self.enable_map = True
         self.enable_input = False
         self.enable_pathfinding = False
+        self.enable_targeting = False
         self.amr = amr
         self.width = WIDTH
         self.height = HEIGHT
@@ -33,8 +34,10 @@ class Map:
         self.obstacles = []
         self.button_radius = INTERFACE_HEIGHT // 2 - 10
         self.button_1 = (WIDTH - INTERFACE_WIDTH - self.button_radius - 10, HEIGHT - INTERFACE_HEIGHT + self.button_radius + 5)
-        self.button_2 = (self.button_1[0] - 2*self.button_radius - 10, self.button_1[1])
+        self.button_2 = (self.button_1[0] - 2 * self.button_radius - 10, self.button_1[1])
+        self.button_3 = (self.button_2[0] - 2 * self.button_radius - 10, self.button_2[1])
         self.font = pg.font.SysFont(FONT, 10)
+        self.target = None
 
     def input_obstacles(self, mouse_down, mouse_up):
         """
@@ -61,6 +64,9 @@ class Map:
                 return True
             elif self.button_2[0] - self.button_radius <= mouse_pos[0] <= self.button_2[0] + self.button_radius and \
                     self.button_2[1] - self.button_radius <= mouse_pos[1] <= self.button_2[1] + self.button_radius:
+                return True
+            elif self.button_3[0] - self.button_radius <= mouse_pos[0] <= self.button_3[0] + self.button_radius and \
+                    self.button_3[1] - self.button_radius <= mouse_pos[1] <= self.button_3[1] + self.button_radius:
                 return True
         return False
 
@@ -100,6 +106,9 @@ class Map:
             elif self.button_2[0] - self.button_radius <= mouse_pos[0] <= self.button_2[0] + self.button_radius and \
                     self.button_2[1] - self.button_radius <= mouse_pos[1] <= self.button_2[1] + self.button_radius:
                 self.enable_pathfinding = not self.enable_pathfinding
+            elif self.button_3[0] - self.button_radius <= mouse_pos[0] <= self.button_3[0] + self.button_radius and \
+                    self.button_3[1] - self.button_radius <= mouse_pos[1] <= self.button_3[1] + self.button_radius:
+                self.enable_targeting = not self.enable_targeting
 
     def draw_buttons(self):
         if not self.enable_input:
@@ -118,6 +127,14 @@ class Map:
             pg.draw.circle(WIN, RED, (self.button_2[0], self.button_2[1]), self.button_radius)
             WIN.blit(self.font.render(
                 "stop", 1, BLACK), (self.button_2[0] - self.button_radius + 5, self.button_2[1] - 5))
+        if not self.enable_targeting:
+            pg.draw.circle(WIN, GREEN, (self.button_3[0], self.button_3[1]), self.button_radius)
+            WIN.blit(self.font.render(
+                "enable targeting", 1, BLACK), (self.button_3[0] - self.button_radius + 5, self.button_3[1] - 5))
+        else:
+            pg.draw.circle(WIN, RED, (self.button_3[0], self.button_3[1]), self.button_radius)
+            WIN.blit(self.font.render(
+                "disable targeting", 1, BLACK), (self.button_3[0] - self.button_radius + 5, self.button_3[1] - 5))
 
     def draw_obstacles(self):
         for obstacle in self.obstacles:
@@ -125,14 +142,25 @@ class Map:
 
     def handle_obstacles(self, mouse_down, mouse_up=None):
         self.button_handler(mouse_down)
-        if self.enable_input:
+        if self.enable_targeting:
+            if mouse_down is not None:
+                if not self.is_on_button(mouse_down) and not self.is_obstacle(mouse_down):
+                    self.target = mouse_down
+                    print("target set")
+                    self.enable_targeting = False if self.target else True
+                elif self.is_obstacle(mouse_down):
+                    print("Target is on an obstacle.")
+        elif self.enable_input:
             self.input_obstacles(mouse_down, mouse_up)
         elif self.enable_pathfinding:
-            start = time()
-            self.put_obstacle_on_grid()
-            # pathfinding algorithm here
-            print(f"Time taken: {time() - start} s")
-            self.enable_pathfinding = False
+            if self.target is not None:
+                start = time()
+                self.put_obstacle_on_grid()
+                path = self.a_star((int(self.target[1] // 10), int(self.target[0] // 10)))
+                print(f"Time taken: {time() - start} s")
+                self.enable_pathfinding = False
+            else:
+                print("Target is not set yet.")
 
     def draw(self):
         if self.enable_map:
@@ -174,7 +202,7 @@ class Map:
                 if node_position[0] > (len(self.downsized_grid) - 1) or node_position[0] < 0 or node_position[1] > (len(self.downsized_grid[len(self.downsized_grid)-1]) -1) or node_position[1] < 0:
                     continue
 
-                if self.downsized_grid[node_position[0]][node_position[1]] != 0:
+                if self.downsized_grid[int(node_position[0])][int(node_position[1])] != 0:
                     continue
 
                 new_node = AStarNode(current_node, node_position)
