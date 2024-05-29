@@ -56,6 +56,10 @@ class Map:
                     (self.start, (self.start[0], self.end[1]), self.end, (self.end[0], self.start[1])))
                 self.start = None
                 self.end = None
+        if self.target is not None:
+            if self.is_obstacle(self.target):
+                self.target = None
+                print("Target reset because it was on an obstacle.")
 
     def is_on_button(self, mouse_pos):
         if mouse_pos:
@@ -107,7 +111,8 @@ class Map:
                     self.button_2[1] - self.button_radius <= mouse_pos[1] <= self.button_2[1] + self.button_radius:
                 self.enable_pathfinding = not self.enable_pathfinding
             elif self.button_3[0] - self.button_radius <= mouse_pos[0] <= self.button_3[0] + self.button_radius and \
-                    self.button_3[1] - self.button_radius <= mouse_pos[1] <= self.button_3[1] + self.button_radius:
+                    self.button_3[1] - self.button_radius <= mouse_pos[1] <= self.button_3[1] + self.button_radius and \
+                    not self.enable_input:
                 self.enable_targeting = not self.enable_targeting
 
     def draw_buttons(self):
@@ -141,31 +146,43 @@ class Map:
             pg.draw.polygon(WIN, BLACK, obstacle)
 
     def handle_obstacles(self, mouse_down, mouse_up=None):
-        self.button_handler(mouse_down)
-        if self.enable_targeting:
-            if mouse_down is not None:
-                if not self.is_on_button(mouse_down) and not self.is_obstacle(mouse_down):
-                    self.target = mouse_down
-                    print("target set")
-                    self.enable_targeting = False if self.target else True
-                elif self.is_obstacle(mouse_down):
-                    print("Target is on an obstacle.")
-        elif self.enable_input:
-            self.input_obstacles(mouse_down, mouse_up)
-        elif self.enable_pathfinding:
-            if self.target is not None:
-                start = time()
-                self.put_obstacle_on_grid()
-                path = self.a_star((int(self.target[1] // 10), int(self.target[0] // 10)))
-                print(f"Time taken: {time() - start} s")
-                self.enable_pathfinding = False
-            else:
-                print("Target is not set yet.")
+        if self.enable_map:
+            self.button_handler(mouse_down)
+            if self.enable_targeting:
+                if mouse_down is not None:
+                    if not self.is_on_button(mouse_down) and not self.is_obstacle(mouse_down):
+                        self.target = mouse_down
+                        print("target set")
+                        self.enable_targeting = False if self.target else True
+                    elif self.is_obstacle(mouse_down):
+                        print("Target is on an obstacle.")
+            elif self.enable_input:
+                self.input_obstacles(mouse_down, mouse_up)
+            elif self.enable_pathfinding:
+                if self.target is not None:
+                    start = time()
+                    self.put_obstacle_on_grid()
+                    path = self.a_star((int(self.target[1] // 10), int(self.target[0] // 10)))
+                    print(f"Time taken: {time() - start} s")
+                    self.enable_pathfinding = False
+                else:
+                    print("Target is not set yet.")
 
     def draw(self):
         if self.enable_map:
             self.draw_buttons()
             self.draw_obstacles()
+            if self.enable_targeting:
+                mouse_pos = pg.mouse.get_pos()
+                pg.draw.line(WIN, RED, (mouse_pos[0] - 10, mouse_pos[1] - 10), (mouse_pos[0] + 10, mouse_pos[1] + 10),
+                             2)
+                pg.draw.line(WIN, RED, (mouse_pos[0] + 10, mouse_pos[1] - 10), (mouse_pos[0] - 10, mouse_pos[1] + 10),
+                             2)
+            if self.target:
+                pg.draw.line(WIN, RED, (self.target[0] - 10, self.target[1] - 10), (self.target[0] + 10, self.target[1] + 10),
+                             2)
+                pg.draw.line(WIN, RED, (self.target[0] + 10, self.target[1] - 10), (self.target[0] - 10, self.target[1] + 10),
+                             2)
 
     def a_star(self, end):
         start_node = AStarNode(None, (self.amr.y // 10, self.amr.x // 10))
