@@ -30,18 +30,38 @@ class Map:
         :return:
         """
         if mouse_down and not self.start:
-            self.start = mouse_down
+            if not self.is_on_button(mouse_down):
+                self.start = mouse_down
         elif mouse_up:
-            self.end = mouse_up
-            self.obstacles.append((self.start, (self.start[0], self.end[1]), self.end, (self.end[0], self.start[1])))
-            self.start = None
-            self.end = None
+            if not self.is_on_button(mouse_up):
+                self.end = mouse_up
+                self.obstacles.append(
+                    (self.start, (self.start[0], self.end[1]), self.end, (self.end[0], self.start[1])))
+                self.start = None
+                self.end = None
+
+    def is_on_button(self, mouse_pos):
+        if mouse_pos:
+            if self.button_1[0] - self.button_radius <= mouse_pos[0] <= self.button_1[0] + self.button_radius and \
+                    self.button_1[1] - self.button_radius <= mouse_pos[1] <= self.button_1[1] + self.button_radius:
+                return True
+            elif self.button_2[0] - self.button_radius <= mouse_pos[0] <= self.button_2[0] + self.button_radius and \
+                    self.button_2[1] - self.button_radius <= mouse_pos[1] <= self.button_2[1] + self.button_radius:
+                return True
+        return False
 
     def put_obstacle_on_grid(self):
         for row in range(self.height):
             for col in range(self.width):
                 if self.is_obstacle((row, col)):
                     self.grid[row][col] = 1
+        self.downsized_grid = np.zeros((self.height // 10, self.width // 10))
+        for row in range(self.height // 10):
+            for col in range(self.width // 10):
+                if 1 in self.grid[row * 10: (row + 1) * 10, col * 10: (col + 1) * 10]:
+                    self.downsized_grid[row][col] = 1
+                else:
+                    self.downsized_grid[row][col] = 0
 
     def is_obstacle(self, pos):
         for obstacle in self.obstacles:
@@ -93,9 +113,9 @@ class Map:
         self.button_handler(mouse_down)
         if self.enable_input:
             self.input_obstacles(mouse_down, mouse_up)
-        if self.enable_pathfinding:
+        elif self.enable_pathfinding:
             self.put_obstacle_on_grid()
-            # algorytm do szukania sciezki i zapisywania jej
+            # pathfinding algorithm here
             self.enable_pathfinding = False
 
     def draw(self):

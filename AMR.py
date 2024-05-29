@@ -2,6 +2,7 @@ import math
 import pygame as pg
 from assets import WIDTH, HEIGHT, BLACK, AIUT_BLUE, RED, WIN
 from map import Map
+from interface import Interface
 
 
 class Amr():
@@ -24,6 +25,8 @@ class Amr():
         self.rot_speed_deg = 1
         self.coord_memory = []
         self.target = None
+        self.map = Map(self)
+        self.interface = Interface(self)
 
     def handle_movement(self, keys, destination):
         """

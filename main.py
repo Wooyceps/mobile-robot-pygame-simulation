@@ -1,7 +1,5 @@
 import pygame as pg
 from AMR import Amr
-from interface import Interface
-from map import Map
 from assets import WHITE, WIN
 
 
@@ -24,8 +22,6 @@ def main():
     clock = pg.time.Clock()
 
     amr = Amr()
-    interface = Interface(amr)
-    map = Map(amr)
 
     run = True
     while run:
@@ -43,8 +39,8 @@ def main():
 
         keys = pg.key.get_pressed()
         amr.handle_movement(keys, mouse_down)
-        map.handle_obstacles(mouse_down, mouse_up)
-        draw_simulation(amr, interface, map)
+        amr.map.handle_obstacles(mouse_down, mouse_up)
+        draw_simulation(amr, amr.interface, amr.map)
 
 
 if __name__ == "__main__":
