@@ -32,6 +32,8 @@ class Map:
         self.button_3 = (self.button_2[0] - 2 * self.button_radius - 10, self.button_2[1])
         self.font = pg.font.SysFont(FONT, 10)
 
+        self.optimal_path = []
+
     def input_obstacles(self, mouse_down, mouse_up):
         if mouse_down and not self.start and not self.is_on_button(mouse_down):
             self.start = mouse_down
@@ -105,9 +107,20 @@ class Map:
             elif self.enable_pathfinding and self.target:
                 start = time()
                 self.put_obstacle_on_grid()
-                path = self.a_star((int(self.target[1] // 10), int(self.target[0] // 10)))
+                start_node = (int(self.amr.y // 10), int(self.amr.x // 10))  # Update the start node
+                path = self.a_star(start_node, (int(self.target[1] // 10), int(self.target[0] // 10)))
+                self.optimal_path = self.map_path_to_large_grid(path)
                 print(f"Time taken: {time() - start} s")
                 self.enable_pathfinding = False
+
+    def map_path_to_large_grid(self, path):
+        large_grid_path = [(coord[0] * 10 + 5, coord[1] * 10 + 5) for coord in path]
+        return large_grid_path
+
+    def draw_large_grid_path(self, large_grid_path):
+        for point in large_grid_path:
+            pg.draw.line(WIN, (0, 0, 255), (point[0] - 5, point[1] - 5), (point[0] + 5, point[1] + 5), 2)
+            pg.draw.line(WIN, (0, 0, 255), (point[0] + 5, point[1] - 5), (point[0] - 5, point[1] + 5), 2)
 
     def draw(self):
         if self.enable_map:
@@ -117,9 +130,11 @@ class Map:
                 mouse_pos = pg.mouse.get_pos() if self.enable_targeting else self.target
                 pg.draw.line(WIN, RED, (mouse_pos[0] - 10, mouse_pos[1] - 10), (mouse_pos[0] + 10, mouse_pos[1] + 10), 2)
                 pg.draw.line(WIN, RED, (mouse_pos[0] + 10, mouse_pos[1] - 10), (mouse_pos[0] - 10, mouse_pos[1] + 10), 2)
+            if self.optimal_path:
+                self.draw_large_grid_path(self.optimal_path)
 
-    def a_star(self, end):
-        start_node = AStarNode(None, (self.amr.y // 10, self.amr.x // 10))
+    def a_star(self, start, end):
+        start_node = AStarNode(None, start)
         end_node = AStarNode(None, end)
         open_list = [start_node]
         closed_list = []
