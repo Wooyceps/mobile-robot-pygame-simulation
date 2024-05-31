@@ -107,8 +107,9 @@ class Map:
             elif self.enable_pathfinding and self.target:
                 start = time()
                 self.put_obstacle_on_grid()
-                start_node = (int(self.amr.y // 10), int(self.amr.x // 10))  # Update the start node
-                path = self.a_star(start_node, (int(self.target[1] // 10), int(self.target[0] // 10)))
+                start_node = (int(self.amr.x // 10), int(self.amr.y // 10))  # Swap x and y
+                print("looking for path")
+                path = self.a_star(start_node, (int(self.target[0] // 10), int(self.target[1] // 10)))  # Swap x and y
                 self.optimal_path = self.map_path_to_large_grid(path)
                 print(f"Time taken: {time() - start} s")
                 self.enable_pathfinding = False
@@ -133,9 +134,14 @@ class Map:
             if self.optimal_path:
                 self.draw_large_grid_path(self.optimal_path)
 
+    def reset_a_star_nodes(self, open_list, closed_list):
+        for node in open_list + closed_list:
+            node.g = node.h = node.f = 0
+            node.parent = None
+
     def a_star(self, start, end):
-        start_node = AStarNode(None, start)
-        end_node = AStarNode(None, end)
+        start_node = AStarNode(None, start)  # Swap x and y
+        end_node = AStarNode(None, end)  # Swap x and y
         open_list = [start_node]
         closed_list = []
 
@@ -150,13 +156,18 @@ class Map:
                 while current:
                     path.append(current.position)
                     current = current.parent
+
+                self.reset_a_star_nodes(open_list, closed_list)  # Reset the nodes
+
                 return path[::-1]
 
             children = []
             for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
                 node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
 
-                if not (0 <= node_position[0] < len(self.downsized_grid) and 0 <= node_position[1] < len(self.downsized_grid[0]) and self.downsized_grid[int(node_position[0])][int(node_position[1])] == 0):
+                if not (0 <= node_position[0] < len(self.downsized_grid) and 0 <= node_position[1] < len(
+                        self.downsized_grid[0]) and self.downsized_grid[int(node_position[0])][
+                            int(node_position[1])] == 0):
                     continue
 
                 new_node = AStarNode(current_node, node_position)
@@ -167,7 +178,8 @@ class Map:
                     continue
 
                 child.g = current_node.g + 1
-                child.h = ((child.position[0] - end_node.position[0]) ** 2) + ((child.position[1] - end_node.position[1]) ** 2)
+                child.h = ((child.position[0] - end_node.position[0]) ** 2) + (
+                            (child.position[1] - end_node.position[1]) ** 2)
                 child.f = child.g + child.h
 
                 if any(child == open_node and child.g > open_node.g for open_node in open_list):
