@@ -100,7 +100,7 @@ class Map:
             self.button_handler(mouse_down)
             if self.enable_targeting and mouse_down and not self.is_on_button(mouse_down) and not self.is_obstacle(mouse_down):
                 self.target = mouse_down
-                print("target set")
+                print(f"target set: {mouse_down}")
                 self.enable_targeting = False if self.target else True
             elif self.enable_input:
                 self.input_obstacles(mouse_down, mouse_up)
