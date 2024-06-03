@@ -2,16 +2,7 @@ import pygame as pg
 import numpy as np
 from time import time
 from assets import WIDTH, HEIGHT, WIN, BLACK, INTERFACE_HEIGHT, INTERFACE_WIDTH, FONT, GREEN, RED
-
-
-class AStarNode:
-    def __init__(self, parent=None, position=None):
-        self.parent = parent
-        self.position = position
-        self.g = self.h = self.f = 0
-
-    def __eq__(self, other):
-        return self.position == other.position
+from a_star import a_star_search
 
 
 class Map:
@@ -23,7 +14,7 @@ class Map:
         self.obstacles = []
         self.target = None
         self.start = self.end = None
-        self.downsized_grid = []
+        self.downsized_grid = np.zeros((self.height // 10, self.width // 10))
         self.enable_map = True
         self.enable_input = self.enable_pathfinding = self.enable_targeting = False
         self.button_radius = INTERFACE_HEIGHT // 2 - 10
@@ -54,14 +45,21 @@ class Map:
         return False
 
     def put_obstacle_on_grid(self):
+        self.obstacles.append(((0, 0), (0, 5), (WIDTH, 5), (WIDTH, 0)))
+        self.obstacles.append(((0, 0), (0, HEIGHT), (5, HEIGHT), (5, 0)))
+        self.obstacles.append(((0, HEIGHT - 5), (0, HEIGHT), (WIDTH, HEIGHT), (WIDTH, HEIGHT - 5)))
+        self.obstacles.append(((WIDTH - 5, 0), (WIDTH, 0), (WIDTH, HEIGHT), (WIDTH - 5, HEIGHT)))
         for row in range(self.height):
             for col in range(self.width):
                 if self.is_obstacle((row, col)):
                     self.grid[row][col] = 1
-        self.downsized_grid = np.zeros((self.height // 10, self.width // 10))
+                print(f"[{row}][{col}] = {self.grid[row][col]}")
+
         for row in range(self.height // 10):
             for col in range(self.width // 10):
+                print(row, col)
                 self.downsized_grid[row][col] = 1 if 1 in self.grid[row * 10: (row + 1) * 10, col * 10: (col + 1) * 10] else 0
+
 
     def is_obstacle(self, pos):
         for obstacle in self.obstacles:
@@ -106,10 +104,11 @@ class Map:
                 self.input_obstacles(mouse_down, mouse_up)
             elif self.enable_pathfinding and self.target:
                 start = time()
+                print("putting obstacles on grid")
                 self.put_obstacle_on_grid()
                 start_node = (int(self.amr.x // 10), int(self.amr.y // 10))  # Swap x and y
                 print("looking for path")
-                path = self.a_star(start_node, (int(self.target[0] // 10), int(self.target[1] // 10)))  # Swap x and y
+                path = a_star_search(self.downsized_grid, start_node, (int(self.target[0] // 10), int(self.target[1] // 10)))  # Swap x and y
                 self.optimal_path = self.map_path_to_large_grid(path)
                 print(f"Time taken: {time() - start} s")
                 self.enable_pathfinding = False
@@ -133,56 +132,3 @@ class Map:
                 pg.draw.line(WIN, RED, (mouse_pos[0] + 10, mouse_pos[1] - 10), (mouse_pos[0] - 10, mouse_pos[1] + 10), 2)
             if self.optimal_path:
                 self.draw_large_grid_path(self.optimal_path)
-
-    def reset_a_star_nodes(self, open_list, closed_list):
-        for node in open_list + closed_list:
-            node.g = node.h = node.f = 0
-            node.parent = None
-
-    def a_star(self, start, end):
-        start_node = AStarNode(None, start)  # Swap x and y
-        end_node = AStarNode(None, end)  # Swap x and y
-        open_list = [start_node]
-        closed_list = []
-
-        while open_list:
-            current_node = min(open_list, key=lambda node: node.f)
-            open_list.remove(current_node)
-            closed_list.append(current_node)
-
-            if current_node == end_node:
-                path = []
-                current = current_node
-                while current:
-                    path.append(current.position)
-                    current = current.parent
-
-                self.reset_a_star_nodes(open_list, closed_list)  # Reset the nodes
-
-                return path[::-1]
-
-            children = []
-            for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
-                node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
-
-                if not (0 <= node_position[0] < len(self.downsized_grid) and 0 <= node_position[1] < len(
-                        self.downsized_grid[0]) and self.downsized_grid[int(node_position[0])][
-                            int(node_position[1])] == 0):
-                    continue
-
-                new_node = AStarNode(current_node, node_position)
-                children.append(new_node)
-
-            for child in children:
-                if child in closed_list:
-                    continue
-
-                child.g = current_node.g + 1
-                child.h = ((child.position[0] - end_node.position[0]) ** 2) + (
-                            (child.position[1] - end_node.position[1]) ** 2)
-                child.f = child.g + child.h
-
-                if any(child == open_node and child.g > open_node.g for open_node in open_list):
-                    continue
-
-                open_list.append(child)
