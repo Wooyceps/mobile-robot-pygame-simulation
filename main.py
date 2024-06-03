@@ -1,16 +1,9 @@
 import pygame as pg
-import math
-import AMR
+from AMR import Amr
+from assets import WHITE, WIN
 
-WIDTH, HEIGHT = 900, 500
-WIN = pg.display.set_mode((WIDTH, HEIGHT))
+
 pg.display.set_caption("AMR simulation")
-
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-YELLOW = (255, 255, 0)
-AIUT_BLUE = (0, 149, 218)
 
 FPS = 60
 
@@ -28,23 +21,26 @@ def main():
     pg.init()
     clock = pg.time.Clock()
 
-    amr = AMR.AMR()
+    amr = Amr()
 
     run = True
     while run:
         clock.tick(FPS)
-        mouse = None
+        mouse_down = None
+        mouse_up = None
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 run = False
                 pg.quit()
-            elif event.type == pg.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    mouse = (event.pos[0], event.pos[1])
+            elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_down = (event.pos[0], event.pos[1])
+            elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
+                mouse_up = (event.pos[0], event.pos[1])
 
         keys = pg.key.get_pressed()
-        amr.handle_movement(keys, mouse)
-        draw_simulation(amr)
+        amr.handle_movement(keys, mouse_down)
+        amr.map.handle_obstacles(mouse_down, mouse_up)
+        draw_simulation(amr, amr.interface, amr.map)
 
 
 if __name__ == "__main__":
