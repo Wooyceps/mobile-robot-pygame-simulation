@@ -10,7 +10,8 @@ BLACK = (0, 0, 0)
 AIUT_BLUE = (0, 149, 218)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
-GREY = (128, 128, 128)
+DARK_GREY = (128, 128, 128)
 GREEN = (0, 255, 0)
+GREY = (169, 169, 169)
 
 FONT = 'arial'

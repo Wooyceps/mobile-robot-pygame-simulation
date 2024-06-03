@@ -1,7 +1,7 @@
 import pygame as pg
 import numpy as np
 from time import time
-from assets import WIDTH, HEIGHT, WIN, BLACK, INTERFACE_HEIGHT, INTERFACE_WIDTH, FONT, GREEN, RED
+from assets import WIDTH, HEIGHT, WIN, BLACK, INTERFACE_HEIGHT, INTERFACE_WIDTH, FONT, GREEN, RED, DARK_GREY
 from a_star import a_star_search
 
 
@@ -90,7 +90,7 @@ class Map:
 
     def draw_obstacles(self):
         for obstacle in self.obstacles:
-            pg.draw.polygon(WIN, BLACK, obstacle)
+            pg.draw.polygon(WIN, DARK_GREY, obstacle)
 
     def handle_obstacles(self, mouse_down, mouse_up=None):
         if self.enable_map:
