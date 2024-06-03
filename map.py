@@ -10,11 +10,11 @@ class Map:
         self.amr = amr
         self.width = WIDTH
         self.height = HEIGHT
-        self.grid = np.zeros((self.height, self.width))
+        self.grid = np.zeros((self.width, self.height))  # Zmieniamy kolejność wymiarów
         self.obstacles = []
         self.target = None
         self.start = self.end = None
-        self.downsized_grid = np.zeros((self.height // 10, self.width // 10))
+        self.downsized_grid = np.zeros((self.width // 10, self.height // 10))  # Zmieniamy kolejność wymiarów
         self.enable_map = True
         self.enable_input = self.enable_pathfinding = self.enable_targeting = False
         self.button_radius = INTERFACE_HEIGHT // 2 - 10
@@ -49,17 +49,16 @@ class Map:
         self.obstacles.append(((0, 0), (0, HEIGHT), (5, HEIGHT), (5, 0)))
         self.obstacles.append(((0, HEIGHT - 5), (0, HEIGHT), (WIDTH, HEIGHT), (WIDTH, HEIGHT - 5)))
         self.obstacles.append(((WIDTH - 5, 0), (WIDTH, 0), (WIDTH, HEIGHT), (WIDTH - 5, HEIGHT)))
-        for row in range(self.height):
-            for col in range(self.width):
-                if self.is_obstacle((row, col)):
-                    self.grid[row][col] = 1
-                print(f"[{row}][{col}] = {self.grid[row][col]}")
+        for col in range(self.width):  # Zmieniamy kolejność pętli
+            for row in range(self.height):
+                if self.is_obstacle((col, row)):  # Zamieniamy miejscami współrzędne
+                    self.grid[col][row] = 1  # Zamieniamy miejscami współrzędne
+                print(f"[{col}][{row}] = {self.grid[col][row]}")  # Zamieniamy miejscami współrzędne
 
-        for row in range(self.height // 10):
-            for col in range(self.width // 10):
-                print(row, col)
-                self.downsized_grid[row][col] = 1 if 1 in self.grid[row * 10: (row + 1) * 10, col * 10: (col + 1) * 10] else 0
-
+        for col in range(self.width // 10):  # Zmieniamy kolejność pętli
+            for row in range(self.height // 10):
+                print(col, row)
+                self.downsized_grid[col][row] = 1 if 1 in self.grid[col * 10: (col + 1) * 10, row * 10: (row + 1) * 10] else 0  # Zamieniamy miejscami współrzędne
 
     def is_obstacle(self, pos):
         for obstacle in self.obstacles:

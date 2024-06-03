@@ -6,6 +6,8 @@ def is_valid(row, col, ROW, COL):
 
 def a_star_search(grid, src, dest):
     ROW, COL = grid.shape
+    print(f"ROW: {ROW}, COL: {COL}")
+    print(f"src: {src}, dest: {dest}")
     directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
     cell_details = {(i, j): {'f': float('inf'), 'g': float('inf'), 'h': 0, 'parent': None} for i in range(ROW) for j in range(COL)}
     cell_details[src]['f'] = cell_details[src]['g'] = 0
