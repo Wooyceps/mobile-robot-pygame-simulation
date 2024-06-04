@@ -1,6 +1,6 @@
 import pygame as pg
 from AMR import Amr
-from assets import WHITE, WIN
+from assets import LIGHT_GREY, WIN
 
 
 pg.display.set_caption("AMR simulation")
@@ -9,7 +9,7 @@ FPS = 60
 
 
 def draw_simulation(*argv):
-    WIN.fill(WHITE)
+    WIN.fill(LIGHT_GREY)
 
     for obj in argv:
         obj.draw()
@@ -40,7 +40,7 @@ def main():
         keys = pg.key.get_pressed()
         amr.handle_movement(keys, mouse_down)
         amr.map.handle_obstacles(mouse_down, mouse_up)
-        draw_simulation(amr, amr.interface, amr.map)
+        draw_simulation(amr, amr.map, amr.interface)
 
 
 if __name__ == "__main__":

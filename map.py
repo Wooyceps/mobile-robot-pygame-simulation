@@ -10,18 +10,21 @@ class Map:
         self.amr = amr
         self.width = WIDTH
         self.height = HEIGHT
-        self.grid = np.zeros((self.width, self.height))  # Zmieniamy kolejność wymiarów
-        self.obstacles = []
+        self.obstacles = [((0, 0), (0, 5), (WIDTH, 5), (WIDTH, 0)),
+                          ((0, 0), (0, HEIGHT), (5, HEIGHT), (5, 0)),
+                          ((0, HEIGHT - 5), (0, HEIGHT), (WIDTH, HEIGHT), (WIDTH, HEIGHT - 5)),
+                          ((WIDTH - 5, 0), (WIDTH, 0), (WIDTH, HEIGHT), (WIDTH - 5, HEIGHT))]
         self.target = None
         self.start = self.end = None
-        self.downsized_grid = np.zeros((self.width // 10, self.height // 10))  # Zmieniamy kolejność wymiarów
+        self.downsized_grid = np.zeros((self.width // 10, self.height // 10))
+        self.danger_map = np.zeros((self.width, self.height))
         self.enable_map = True
         self.enable_input = self.enable_pathfinding = self.enable_targeting = False
         self.button_radius = INTERFACE_HEIGHT // 2 - 10
         self.button_1 = (WIDTH - INTERFACE_WIDTH - self.button_radius - 10, HEIGHT - INTERFACE_HEIGHT + self.button_radius + 5)
         self.button_2 = (self.button_1[0] - 2 * self.button_radius - 10, self.button_1[1])
         self.button_3 = (self.button_2[0] - 2 * self.button_radius - 10, self.button_2[1])
-        self.font = pg.font.SysFont(FONT, 10)
+        self.font = pg.font.SysFont(FONT, 14)
 
         self.optimal_path = []
 
@@ -45,26 +48,33 @@ class Map:
         return False
 
     def put_obstacle_on_grid(self):
-        self.obstacles.append(((0, 0), (0, 5), (WIDTH, 5), (WIDTH, 0)))
-        self.obstacles.append(((0, 0), (0, HEIGHT), (5, HEIGHT), (5, 0)))
-        self.obstacles.append(((0, HEIGHT - 5), (0, HEIGHT), (WIDTH, HEIGHT), (WIDTH, HEIGHT - 5)))
-        self.obstacles.append(((WIDTH - 5, 0), (WIDTH, 0), (WIDTH, HEIGHT), (WIDTH - 5, HEIGHT)))
-        for col in range(self.width):  # Zmieniamy kolejność pętli
+        last = None
+        for col in range(self.width):
             for row in range(self.height):
-                if self.is_obstacle((col, row)):  # Zamieniamy miejscami współrzędne
-                    self.grid[col][row] = 1  # Zamieniamy miejscami współrzędne
-                print(f"[{col}][{row}] = {self.grid[col][row]}")  # Zamieniamy miejscami współrzędne
-
-        for col in range(self.width // 10):  # Zmieniamy kolejność pętli
+                if self.is_danger_zone((col, row)):
+                    self.danger_map[col][row] = 1
+                prog = int((col * self.height + row)/(self.width*self.height)*100)
+                print(prog, "%") if last != prog else None
+                last = prog
+        print("100 %")
+        for col in range(self.width // 10):
             for row in range(self.height // 10):
-                print(col, row)
-                self.downsized_grid[col][row] = 1 if 1 in self.grid[col * 10: (col + 1) * 10, row * 10: (row + 1) * 10] else 0  # Zamieniamy miejscami współrzędne
+                self.downsized_grid[col][row] = 1 if 1 in self.danger_map[col * 10: (col + 1) * 10, row * 10: (row + 1) * 10] else 0  # ZMIENIĆ grid NA POŚREDNIĄ
 
     def is_obstacle(self, pos):
         for obstacle in self.obstacles:
             x_range = sorted({point[0] for point in obstacle})
             y_range = sorted({point[1] for point in obstacle})
             if x_range[0] <= pos[0] <= x_range[1] and y_range[0] <= pos[1] <= y_range[1]:
+                return True
+        return False
+
+    def is_danger_zone(self, pos):
+        for obstacle in self.obstacles:
+            x_range = sorted({point[0] for point in obstacle})
+            y_range = sorted({point[1] for point in obstacle})
+            if (x_range[0] - self.amr.half_diag) <= pos[0] <= (x_range[1] + self.amr.half_diag) and \
+                    (y_range[0] - self.amr.half_diag) <= pos[1] <= (y_range[1] + self.amr.half_diag):
                 return True
         return False
 
@@ -82,11 +92,11 @@ class Map:
                 self.enable_targeting = not self.enable_targeting
 
     def draw_buttons(self):
-        for button, text, enabled in [(self.button_1, "input obstacles", self.enable_input),
+        for button, text, enabled in [(self.button_1, "obstacles", self.enable_input),
                                       (self.button_2, "find path", self.enable_pathfinding),
-                                      (self.button_3, "enable targeting", self.enable_targeting)]:
+                                      (self.button_3, "targeting", self.enable_targeting)]:
             pg.draw.circle(WIN, RED if enabled else GREEN, (button[0], button[1]), self.button_radius)
-            WIN.blit(self.font.render(text, 1, BLACK), (button[0] - self.button_radius + 5, button[1] - 5))
+            WIN.blit(self.font.render(text, 1, BLACK), (button[0] - self.button_radius + 5, button[1] - 8))
 
     def draw_obstacles(self):
         for obstacle in self.obstacles:
@@ -95,7 +105,7 @@ class Map:
     def handle_obstacles(self, mouse_down, mouse_up=None):
         if self.enable_map:
             self.button_handler(mouse_down)
-            if self.enable_targeting and mouse_down and not self.is_on_button(mouse_down) and not self.is_obstacle(mouse_down):
+            if self.enable_targeting and mouse_down and not self.is_on_button(mouse_down) and not self.is_danger_zone(mouse_down):
                 self.target = mouse_down
                 print(f"target set: {mouse_down}")
                 self.enable_targeting = False if self.target else True
@@ -123,8 +133,8 @@ class Map:
 
     def draw(self):
         if self.enable_map:
-            self.draw_buttons()
             self.draw_obstacles()
+            self.draw_buttons()
             if self.enable_targeting or self.target:
                 mouse_pos = pg.mouse.get_pos() if self.enable_targeting else self.target
                 pg.draw.line(WIN, RED, (mouse_pos[0] - 10, mouse_pos[1] - 10), (mouse_pos[0] + 10, mouse_pos[1] + 10), 2)

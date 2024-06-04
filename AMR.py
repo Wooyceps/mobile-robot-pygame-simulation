@@ -17,6 +17,7 @@ class Amr():
         self.leave_track = True
         self.plan_trajectory = False
         self.width, self.height = 50, 75
+        self.half_diag = math.sqrt((self.height / 2) ** 2 + (self.width / 2) ** 2)
         self.x, self.y = WIDTH // 2, HEIGHT // 2
         self.angle_rad = 0
         self.color = BLACK
@@ -78,7 +79,7 @@ class Amr():
         # AMR body base
         points = []
 
-        half_diag = math.sqrt((self.height / 2) ** 2 + (self.width / 2) ** 2)
+        half_diag = self.half_diag
         rect_ang = math.atan2(self.height / 2, self.width / 2)
         rect_angles = [rect_ang, -rect_ang + math.pi, rect_ang + math.pi, -rect_ang]
 
@@ -92,16 +93,14 @@ class Amr():
         # AMR front light feature
         points = []
 
-        half_diag_outer = math.sqrt((self.height / 2) ** 2 + (self.width / 2) ** 2)
         half_diag_inner = math.sqrt((self.height / 2 - 5) ** 2 + (self.width / 2) ** 2)
-        rect_ang_outer = math.atan2(self.height / 2, self.width / 2)
         rect_ang_inner = math.atan2(self.height / 2 - 5, self.width / 2)
-        rect_angles = [rect_ang_outer, -rect_ang_outer + math.pi, -rect_ang_inner + math.pi, rect_ang_inner]
+        rect_angles = [rect_ang, -rect_ang + math.pi, -rect_ang_inner + math.pi, rect_ang_inner]
 
         for idx, angle in enumerate(rect_angles):
             if idx < 2:
-                y_offset = -1 * half_diag_outer * math.sin(angle + self.angle_rad)
-                x_offset = half_diag_outer * math.cos(angle + self.angle_rad)
+                y_offset = -1 * half_diag * math.sin(angle + self.angle_rad)
+                x_offset = half_diag * math.cos(angle + self.angle_rad)
             else:
                 y_offset = -1 * half_diag_inner * math.sin(angle + self.angle_rad)
                 x_offset = half_diag_inner * math.cos(angle + self.angle_rad)
