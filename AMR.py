@@ -14,7 +14,7 @@ class Amr():
         """
         Initialize the AMR with default or provided position, and other attributes.
         """
-        self.leave_track = True
+        self.leave_track = False
         self.plan_trajectory = False
         self.width, self.height = 50, 75
         self.half_diag = math.sqrt((self.height / 2) ** 2 + (self.width / 2) ** 2)
@@ -26,6 +26,7 @@ class Amr():
         self.rot_speed_deg = 1
         self.coord_memory = []
         self.target = None
+        self.buffer = []
         self.map = Map(self)
         self.interface = Interface(self)
 

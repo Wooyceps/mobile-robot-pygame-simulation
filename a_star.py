@@ -5,6 +5,12 @@ def is_valid(row, col, ROW, COL):
     return (row >= 0) and (row < ROW) and (col >= 0) and (col < COL)
 
 def a_star_search(grid, src, dest):
+    if grid[src[0]][src[1]] == 1:
+        print("Source is blocked")
+        return []
+    if grid[dest[0]][dest[1]] == 1:
+        print("Destination is blocked")
+        return []
     ROW, COL = grid.shape
     print(f"ROW: {ROW}, COL: {COL}")
     print(f"src: {src}, dest: {dest}")

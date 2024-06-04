@@ -5,6 +5,16 @@ from assets import WIDTH, HEIGHT, WIN, BLACK, INTERFACE_HEIGHT, INTERFACE_WIDTH,
 from a_star import a_star_search
 
 
+def draw_large_grid_path(large_grid_path):
+    for point in large_grid_path:
+        pg.draw.line(WIN, (0, 0, 255), (point[0] - 5, point[1] - 5), (point[0] + 5, point[1] + 5), 2)
+        pg.draw.line(WIN, (0, 0, 255), (point[0] + 5, point[1] - 5), (point[0] - 5, point[1] + 5), 2)
+
+
+def map_path_to_large_grid(path):
+    return [(coord[0] * 10 + 5, coord[1] * 10 + 5) for coord in path]
+
+
 class Map:
     def __init__(self, amr):
         self.amr = amr
@@ -32,7 +42,8 @@ class Map:
         button_1 = (WIDTH - INTERFACE_WIDTH - self.button_radius - 10, HEIGHT - INTERFACE_HEIGHT + self.button_radius + 5)
         button_2 = (button_1[0] - 2 * self.button_radius - 10, button_1[1])
         button_3 = (button_2[0] - 2 * self.button_radius - 10, button_2[1])
-        return [button_1, button_2, button_3]
+        button_4 = (button_3[0] - 2 * self.button_radius - 10, button_3[1])
+        return [button_1, button_2, button_3, button_4]
 
     def input_obstacles(self, mouse_down, mouse_up):
         if mouse_down and not self.start and not self.is_on_button(mouse_down):
@@ -41,9 +52,9 @@ class Map:
             self.end = mouse_up
             self.obstacles.append((self.start, (self.start[0], self.end[1]), self.end, (self.end[0], self.start[1])))
             self.start = self.end = None
-            if self.target and self.is_obstacle(self.target):
+            if self.target and self.is_danger_zone(self.target):
                 self.target = None
-                print("Target reset because it was on an obstacle.")
+                print("Target reset because it was in danger zone.")
 
     def is_on_button(self, mouse_pos):
         return any(self._is_on_button(mouse_pos, button) for button in self.buttons)
@@ -80,8 +91,9 @@ class Map:
     def _is_in_danger_zone(self, pos, obstacle):
         x_range = sorted({point[0] for point in obstacle})
         y_range = sorted({point[1] for point in obstacle})
-        return (x_range[0] - self.amr.half_diag) <= pos[0] <= (x_range[1] + self.amr.half_diag) and \
-               (y_range[0] - self.amr.half_diag) <= pos[1] <= (y_range[1] + self.amr.half_diag)
+        padding = self.amr.half_diag - 15
+        return (x_range[0] - padding) <= pos[0] <= (x_range[1] + padding) and \
+               (y_range[0] - padding) <= pos[1] <= (y_range[1] + padding)
 
     def button_handler(self, mouse_pos):
         if mouse_pos:
@@ -89,13 +101,17 @@ class Map:
                 if self._is_on_button(mouse_pos, button):
                     if i == 0:
                         self.enable_input = not self.enable_input
-                    elif i == 1:
+                    elif i == 1 and not self.enable_input:
                         self.enable_pathfinding = not self.enable_pathfinding
                     elif i == 2 and not self.enable_input:
                         self.enable_targeting = not self.enable_targeting
+                    elif i == 3 and not self.enable_input:
+                        self.obstacles = self._init_obstacles()
+                        self.target = None
+                        self.optimal_path = []
 
     def draw_buttons(self):
-        for button, text, enabled in zip(self.buttons, ["obstacles", "find path", "targeting"], [self.enable_input, self.enable_pathfinding, self.enable_targeting]):
+        for button, text, enabled in zip(self.buttons, ["obstacles", "find path", "targeting", "   reset"], [self.enable_input, self.enable_pathfinding, self.enable_targeting, None]):
             pg.draw.circle(WIN, RED if enabled else GREEN, (button[0], button[1]), self.button_radius)
             WIN.blit(self.font.render(text, 1, BLACK), (button[0] - self.button_radius + 5, button[1] - 8))
 
@@ -114,22 +130,15 @@ class Map:
                 self.input_obstacles(mouse_down, mouse_up)
             elif self.enable_pathfinding and self.target:
                 start = time()
-                print("putting obstacles on grid")
                 self.put_obstacle_on_grid()
-                start_node = (int(self.amr.x // 10), int(self.amr.y // 10))  # Swap x and y
-                print("looking for path")
+                print(f"mapping: {time() - start} s")
+                start_node = (int(self.amr.x // 10), int(self.amr.y // 10))
+                start = time()
                 path = a_star_search(self.downsized_grid, start_node, (int(self.target[0] // 10), int(self.target[1] // 10)))  # Swap x and y
-                self.optimal_path = self.map_path_to_large_grid(path)
-                print(f"Time taken: {time() - start} s")
+                self.optimal_path = map_path_to_large_grid(path)
+                print(f"pathfinding a*: {time() - start} s")
+                print(path)
                 self.enable_pathfinding = False
-
-    def map_path_to_large_grid(self, path):
-        return [(coord[0] * 10 + 5, coord[1] * 10 + 5) for coord in path]
-
-    def draw_large_grid_path(self, large_grid_path):
-        for point in large_grid_path:
-            pg.draw.line(WIN, (0, 0, 255), (point[0] - 5, point[1] - 5), (point[0] + 5, point[1] + 5), 2)
-            pg.draw.line(WIN, (0, 0, 255), (point[0] + 5, point[1] - 5), (point[0] - 5, point[1] + 5), 2)
 
     def draw(self):
         if self.enable_map:
@@ -140,4 +149,4 @@ class Map:
                 pg.draw.line(WIN, RED, (mouse_pos[0] - 10, mouse_pos[1] - 10), (mouse_pos[0] + 10, mouse_pos[1] + 10), 2)
                 pg.draw.line(WIN, RED, (mouse_pos[0] + 10, mouse_pos[1] - 10), (mouse_pos[0] - 10, mouse_pos[1] + 10), 2)
             if self.optimal_path:
-                self.draw_large_grid_path(self.optimal_path)
+                draw_large_grid_path(self.optimal_path)
