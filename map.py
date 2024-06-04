@@ -10,10 +10,7 @@ class Map:
         self.amr = amr
         self.width = WIDTH
         self.height = HEIGHT
-        self.obstacles = [((0, 0), (0, 5), (WIDTH, 5), (WIDTH, 0)),
-                          ((0, 0), (0, HEIGHT), (5, HEIGHT), (5, 0)),
-                          ((0, HEIGHT - 5), (0, HEIGHT), (WIDTH, HEIGHT), (WIDTH, HEIGHT - 5)),
-                          ((WIDTH - 5, 0), (WIDTH, 0), (WIDTH, HEIGHT), (WIDTH - 5, HEIGHT))]
+        self.obstacles = self._init_obstacles()
         self.target = None
         self.start = self.end = None
         self.downsized_grid = np.zeros((self.width // 10, self.height // 10))
@@ -21,12 +18,21 @@ class Map:
         self.enable_map = True
         self.enable_input = self.enable_pathfinding = self.enable_targeting = False
         self.button_radius = INTERFACE_HEIGHT // 2 - 10
-        self.button_1 = (WIDTH - INTERFACE_WIDTH - self.button_radius - 10, HEIGHT - INTERFACE_HEIGHT + self.button_radius + 5)
-        self.button_2 = (self.button_1[0] - 2 * self.button_radius - 10, self.button_1[1])
-        self.button_3 = (self.button_2[0] - 2 * self.button_radius - 10, self.button_2[1])
+        self.buttons = self._init_buttons()
         self.font = pg.font.SysFont(FONT, 14)
-
         self.optimal_path = []
+
+    def _init_obstacles(self):
+        return [((0, 0), (0, 5), (WIDTH, 5), (WIDTH, 0)),
+                ((0, 0), (0, HEIGHT), (5, HEIGHT), (5, 0)),
+                ((0, HEIGHT - 5), (0, HEIGHT), (WIDTH, HEIGHT), (WIDTH, HEIGHT - 5)),
+                ((WIDTH - 5, 0), (WIDTH, 0), (WIDTH, HEIGHT), (WIDTH - 5, HEIGHT))]
+
+    def _init_buttons(self):
+        button_1 = (WIDTH - INTERFACE_WIDTH - self.button_radius - 10, HEIGHT - INTERFACE_HEIGHT + self.button_radius + 5)
+        button_2 = (button_1[0] - 2 * self.button_radius - 10, button_1[1])
+        button_3 = (button_2[0] - 2 * self.button_radius - 10, button_2[1])
+        return [button_1, button_2, button_3]
 
     def input_obstacles(self, mouse_down, mouse_up):
         if mouse_down and not self.start and not self.is_on_button(mouse_down):
@@ -40,12 +46,11 @@ class Map:
                 print("Target reset because it was on an obstacle.")
 
     def is_on_button(self, mouse_pos):
-        if mouse_pos:
-            for button in [self.button_1, self.button_2, self.button_3]:
-                if button[0] - self.button_radius <= mouse_pos[0] <= button[0] + self.button_radius and \
-                        button[1] - self.button_radius <= mouse_pos[1] <= button[1] + self.button_radius:
-                    return True
-        return False
+        return any(self._is_on_button(mouse_pos, button) for button in self.buttons)
+
+    def _is_on_button(self, mouse_pos, button):
+        return button[0] - self.button_radius <= mouse_pos[0] <= button[0] + self.button_radius and \
+               button[1] - self.button_radius <= mouse_pos[1] <= button[1] + self.button_radius
 
     def put_obstacle_on_grid(self):
         last = None
@@ -59,42 +64,38 @@ class Map:
         print("100 %")
         for col in range(self.width // 10):
             for row in range(self.height // 10):
-                self.downsized_grid[col][row] = 1 if 1 in self.danger_map[col * 10: (col + 1) * 10, row * 10: (row + 1) * 10] else 0  # ZMIENIĆ grid NA POŚREDNIĄ
+                self.downsized_grid[col][row] = 1 if 1 in self.danger_map[col * 10: (col + 1) * 10, row * 10: (row + 1) * 10] else 0
 
     def is_obstacle(self, pos):
-        for obstacle in self.obstacles:
-            x_range = sorted({point[0] for point in obstacle})
-            y_range = sorted({point[1] for point in obstacle})
-            if x_range[0] <= pos[0] <= x_range[1] and y_range[0] <= pos[1] <= y_range[1]:
-                return True
-        return False
+        return any(self._is_in_range(pos, obstacle) for obstacle in self.obstacles)
+
+    def _is_in_range(self, pos, obstacle):
+        x_range = sorted({point[0] for point in obstacle})
+        y_range = sorted({point[1] for point in obstacle})
+        return x_range[0] <= pos[0] <= x_range[1] and y_range[0] <= pos[1] <= y_range[1]
 
     def is_danger_zone(self, pos):
-        for obstacle in self.obstacles:
-            x_range = sorted({point[0] for point in obstacle})
-            y_range = sorted({point[1] for point in obstacle})
-            if (x_range[0] - self.amr.half_diag) <= pos[0] <= (x_range[1] + self.amr.half_diag) and \
-                    (y_range[0] - self.amr.half_diag) <= pos[1] <= (y_range[1] + self.amr.half_diag):
-                return True
-        return False
+        return any(self._is_in_danger_zone(pos, obstacle) for obstacle in self.obstacles)
+
+    def _is_in_danger_zone(self, pos, obstacle):
+        x_range = sorted({point[0] for point in obstacle})
+        y_range = sorted({point[1] for point in obstacle})
+        return (x_range[0] - self.amr.half_diag) <= pos[0] <= (x_range[1] + self.amr.half_diag) and \
+               (y_range[0] - self.amr.half_diag) <= pos[1] <= (y_range[1] + self.amr.half_diag)
 
     def button_handler(self, mouse_pos):
         if mouse_pos:
-            if self.button_1[0] - self.button_radius <= mouse_pos[0] <= self.button_1[0] + self.button_radius and \
-                    self.button_1[1] - self.button_radius <= mouse_pos[1] <= self.button_1[1] + self.button_radius:
-                self.enable_input = not self.enable_input
-            elif self.button_2[0] - self.button_radius <= mouse_pos[0] <= self.button_2[0] + self.button_radius and \
-                    self.button_2[1] - self.button_radius <= mouse_pos[1] <= self.button_2[1] + self.button_radius:
-                self.enable_pathfinding = not self.enable_pathfinding
-            elif self.button_3[0] - self.button_radius <= mouse_pos[0] <= self.button_3[0] + self.button_radius and \
-                    self.button_3[1] - self.button_radius <= mouse_pos[1] <= self.button_3[1] + self.button_radius and \
-                    not self.enable_input:
-                self.enable_targeting = not self.enable_targeting
+            for i, button in enumerate(self.buttons):
+                if self._is_on_button(mouse_pos, button):
+                    if i == 0:
+                        self.enable_input = not self.enable_input
+                    elif i == 1:
+                        self.enable_pathfinding = not self.enable_pathfinding
+                    elif i == 2 and not self.enable_input:
+                        self.enable_targeting = not self.enable_targeting
 
     def draw_buttons(self):
-        for button, text, enabled in [(self.button_1, "obstacles", self.enable_input),
-                                      (self.button_2, "find path", self.enable_pathfinding),
-                                      (self.button_3, "targeting", self.enable_targeting)]:
+        for button, text, enabled in zip(self.buttons, ["obstacles", "find path", "targeting"], [self.enable_input, self.enable_pathfinding, self.enable_targeting]):
             pg.draw.circle(WIN, RED if enabled else GREEN, (button[0], button[1]), self.button_radius)
             WIN.blit(self.font.render(text, 1, BLACK), (button[0] - self.button_radius + 5, button[1] - 8))
 
@@ -123,8 +124,7 @@ class Map:
                 self.enable_pathfinding = False
 
     def map_path_to_large_grid(self, path):
-        large_grid_path = [(coord[0] * 10 + 5, coord[1] * 10 + 5) for coord in path]
-        return large_grid_path
+        return [(coord[0] * 10 + 5, coord[1] * 10 + 5) for coord in path]
 
     def draw_large_grid_path(self, large_grid_path):
         for point in large_grid_path:
