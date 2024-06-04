@@ -20,6 +20,7 @@ class Interface():
         """
         Draw the interface on the screen.
         """
+        pg.draw.rect(WIN, BLACK, (self.x - 2, self.y - 2, self.width, self.height))
         pg.draw.rect(WIN, self.fill_color, (self.x, self.y, self.width, self.height))
 
         x_text = self.font.render(

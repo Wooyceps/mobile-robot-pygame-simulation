@@ -30,7 +30,6 @@ class Map:
         self.button_radius = INTERFACE_HEIGHT // 2 - 10
         self.buttons = self._init_buttons()
         self.font = pg.font.SysFont(FONT, 14)
-        self.optimal_path = []
 
     def _init_obstacles(self):
         return [((0, 0), (0, 5), (WIDTH, 5), (WIDTH, 0)),
@@ -108,10 +107,11 @@ class Map:
                     elif i == 3 and not self.enable_input:
                         self.obstacles = self._init_obstacles()
                         self.target = None
-                        self.optimal_path = []
+                        self.amr.buffer = []
 
     def draw_buttons(self):
         for button, text, enabled in zip(self.buttons, ["obstacles", "find path", "targeting", "   reset"], [self.enable_input, self.enable_pathfinding, self.enable_targeting, None]):
+            pg.draw.circle(WIN, BLACK, (button[0], button[1]), self.button_radius + 2)
             pg.draw.circle(WIN, RED if enabled else GREEN, (button[0], button[1]), self.button_radius)
             WIN.blit(self.font.render(text, 1, BLACK), (button[0] - self.button_radius + 5, button[1] - 8))
 
@@ -135,9 +135,9 @@ class Map:
                 start_node = (int(self.amr.x // 10), int(self.amr.y // 10))
                 start = time()
                 path = a_star_search(self.downsized_grid, start_node, (int(self.target[0] // 10), int(self.target[1] // 10)))  # Swap x and y
-                self.optimal_path = map_path_to_large_grid(path)
+                self.amr.buffer = map_path_to_large_grid(path)
                 print(f"pathfinding a*: {time() - start} s")
-                print(path)
+                print(self.amr.buffer)
                 self.enable_pathfinding = False
 
     def draw(self):
@@ -148,5 +148,5 @@ class Map:
                 mouse_pos = pg.mouse.get_pos() if self.enable_targeting else self.target
                 pg.draw.line(WIN, RED, (mouse_pos[0] - 10, mouse_pos[1] - 10), (mouse_pos[0] + 10, mouse_pos[1] + 10), 2)
                 pg.draw.line(WIN, RED, (mouse_pos[0] + 10, mouse_pos[1] - 10), (mouse_pos[0] - 10, mouse_pos[1] + 10), 2)
-            if self.optimal_path:
-                draw_large_grid_path(self.optimal_path)
+            if self.amr.buffer:
+                draw_large_grid_path(self.amr.buffer)

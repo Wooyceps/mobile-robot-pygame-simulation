@@ -37,6 +37,10 @@ class Amr():
         self.target = destination if (destination != self.target and destination) else self.target
         if self.plan_trajectory and self.target:
             self.trajectory_planning()
+        if self.buffer:
+            pass
+            #self.target = self.buffer.pop(0)
+            #self.trajectory_planning()
         else:
             if keys[pg.K_UP]:
                 self.move_fwd_bwd(-1)
