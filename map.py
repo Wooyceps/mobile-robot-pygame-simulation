@@ -1,7 +1,7 @@
 import pygame as pg
 import numpy as np
 from time import time
-from assets import WIDTH, HEIGHT, WIN, BLACK, INTERFACE_HEIGHT, INTERFACE_WIDTH, FONT, GREEN, RED, DARK_GREY
+from assets import WIDTH, HEIGHT, WIN, BLACK, INTERFACE_HEIGHT, INTERFACE_WIDTH, FONT, GREEN, RED, DARK_GREY, ALARM_YELLOW
 from a_star import a_star_search
 
 
@@ -90,7 +90,7 @@ class Map:
     def _is_in_danger_zone(self, pos, obstacle):
         x_range = sorted({point[0] for point in obstacle})
         y_range = sorted({point[1] for point in obstacle})
-        padding = self.amr.half_diag - 15
+        padding = self.amr.half_diag
         return (x_range[0] - padding) <= pos[0] <= (x_range[1] + padding) and \
                (y_range[0] - padding) <= pos[1] <= (y_range[1] + padding)
 
@@ -136,12 +136,26 @@ class Map:
                 start = time()
                 path = a_star_search(self.downsized_grid, start_node, (int(self.target[0] // 10), int(self.target[1] // 10)))  # Swap x and y
                 self.amr.buffer = map_path_to_large_grid(path)
+                self.amr.target = self.amr.buffer.pop(0)
                 print(f"pathfinding a*: {time() - start} s")
                 print(self.amr.buffer)
                 self.enable_pathfinding = False
 
+    def draw_danger_zones(self):
+        h_d = self.amr.half_diag
+        for obstacle in self.obstacles:
+            x = []
+            y = []
+            for point in obstacle:
+                x.append(point[0])
+                y.append(point[1])
+            zone = ((min(x)-h_d, min(y)-h_d), (min(x)-h_d, max(y)+h_d), (max(x)+h_d, max(y)+h_d), (max(x)+h_d, min(y)-h_d))
+            pg.draw.polygon(WIN, ALARM_YELLOW, zone)
+
+
     def draw(self):
         if self.enable_map:
+            self.draw_danger_zones()
             self.draw_obstacles()
             self.draw_buttons()
             if self.enable_targeting or self.target:

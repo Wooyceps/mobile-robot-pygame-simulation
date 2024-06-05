@@ -34,13 +34,10 @@ class Amr():
         """
         Handle the movement of the AMR based on keyboard inputs or destination position.
         """
-        self.target = destination if (destination != self.target and destination) else self.target
-        if self.plan_trajectory and self.target:
+        if not self.buffer:
+            self.target = destination if (destination != self.target and destination) else self.target
+        if (self.plan_trajectory or self.buffer) and self.target:
             self.trajectory_planning()
-        if self.buffer:
-            pass
-            #self.target = self.buffer.pop(0)
-            #self.trajectory_planning()
         else:
             if keys[pg.K_UP]:
                 self.move_fwd_bwd(-1)
@@ -131,3 +128,5 @@ class Amr():
                 self.move_fwd_bwd(-1)
             else:
                 self.target = None
+                if self.buffer:
+                    self.target = self.buffer.pop(0)
