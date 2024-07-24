@@ -39,7 +39,7 @@ Run the `main.py` script to start the simulation.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](LICENSE).
 
 ## Contact
 
